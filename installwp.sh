@@ -46,6 +46,7 @@ mv .* ${PROJECTROOT} 2> /dev/null #suppress errors and warnings
 cd ..
 rmdir ./wordpress
 
+
 #############################################  PLUGIN AND THEME CLEANUP #################################################################################
 
 # whipe out all themes
@@ -76,8 +77,6 @@ fi
 
 
 #############################################  DATABASE MYSQL #################################################################################
-
-
 # # Setup MySQL Database
 # mysql.server start # use on linux
 mysql -u root -e "create database ${PROJECTNAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci";
@@ -99,7 +98,6 @@ cd ${PROJECTROOT}
 wp-cli.phar core config --dbname=$PROJECTNAME --dbuser=$PROJECTNAME
 wp-cli.phar core install --url=${WPURL} --title=${PROJECTNAME} --admin_user=${WPUSER} --admin_password=${WPPASS} --admin_email=${WPEMAIL}
 
-##############################################################################################################################################################
 
 # ######################################## create themes LIB ########################################
 THEMESLIB=${SERVERWWW}/wp-themes
@@ -125,6 +123,7 @@ mv ${PROJECTROOT}/wp-content/themes/html5blank-stable/ ${PROJECTROOT}/wp-content
 cd ${PROJECTROOT}
 wp-cli.phar theme activate Divi || wp-cli.phar theme activate $PROJECTNAME
 
+
 # ######################################## create plugin LIB ########################################
 cd $SERVERWWW
 PLUGINLIB=${SERVERWWW}/wp-plugins 
@@ -145,6 +144,7 @@ unzip -qq \*.zip
 cp -r ${PLUGINLIB}/* ${PROJECTROOT}/wp-content/plugins
 rm ${PROJECTROOT}/wp-content/plugins/*.zip
 
+
 ###################### ACTIAVTE ALL PLUGINS ########################
 cd $PLUGINLIB
 array=()
@@ -162,7 +162,24 @@ for i in "${array[@]}"
 do
    echo "--- $i -> activating"
    wp-cli.phar plugin activate $i
+
 done
+
+
+###################### ADD REMOVE PAGES POSTS ######################
+# Remove posts/pages
+wp-cli.phar post delete 1 --force #Hello World!
+wp-cli.phar post delete 2 --force #Sample Page
+
+# Add Pages
+wp-cli.phar post create --post_type=page --post_title="Strona domowa"
+wp-cli.phar post create --post_type=page --post_title=Kontakt
+wp-cli.phar post create --post_type=page --post_title=Blog
+wp-cli.phar post create --post_type=page --post_title=Produkty
+wp-cli.phar post create --post_type=page --post_title=Usługi
+wp-cli.phar post create --post_type=page --post_title=Galeria
+wp-cli.phar post create --post_type=page --post_title=Reaizacje
+
 
 ###################### Output DV login info ######################
 cd ${PROJECTROOT}
