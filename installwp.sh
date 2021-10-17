@@ -1,8 +1,24 @@
 #!/bin/bash
-read -p 'Project name (without special char only letters and numbers no spacesec) press enter for default [testsite]: ' PROJECTNAME
+# @Author: Wiktor Liszkiewicz
+# @Email: w.liszkiewicz@gmail.com
+
+echo "This installer was created to work with Laragon Dev Env over Xampp or Wampp because it is simple better"
+echo "To be able to run this script on Winodows you first need to install:"
+echo "some linux subsystem like git-bash or cmdr"
+echo "wget and curl"
+echo "tar"
+
+echo ""
+echo "If you want to add more plugins go to 'create plugin LIB' section and add wget lines to the zip file of your plugin. You can cp it from webbrowser (right click on btn > coppy url)"
+echo "All plugins will be automatically activated"
+echo "At the end you will generate output in cli and a configuration file will be generated in the project root with all the infromations needed"
+
+echo ""
+echo "Project name (without special char only letters and numbers no spacesec) press enter for default value "
+read -p 'default [testsite]: ' PROJECTNAME
 PROJECTNAME=${PROJECTNAME:-"testsite"}
 
-SERVERWWW="/c/laragon/www" # you can replace all occurrences of "~/Sites" with ${SERVERWWW}
+SERVERWWW="/c/laragon/www" # << edit to fit your needs
 PROJECTROOT=$SERVERWWW/$PROJECTNAME
 
 # Setup site folder, replace all $PROJECTNAME with $PROJECTNAME
@@ -10,14 +26,23 @@ mkdir ${PROJECTROOT}
 cd ${PROJECTROOT}
 # cd ..
 
-wget -q -O latest.tar.gz http://wordpress.org/latest.tar.gz #TODO - check lastest ver on local machine and copy it if it is not older then X time
-# curl -O http://wordpress.org/latest.tar.gz
+echo "Get fresh files? Requiered when runing first time!"
+read -p 'y/n: ' UPDATEFILE
+if [ "$UPDATEFILE" = "y" ]
+then
+    cd ${SERVERWWW}
+    wget -q -O latest.tar.gz https://wordpress.org/latest.tar.gz #TODO - check lastest ver on local machine and copy it if it is not older then X time
+    # curl -O http://wordpress.org/latest.tar.gz
+fi
+
+cp ${SERVERWWW}/latest.tar.gz ${PROJECTROOT}
+cd ${PROJECTROOT}
 tar -xzf latest.tar.gz || exit $?
 cd ./wordpress || exit $?
 cd ${PROJECTROOT}/wordpress # another way
 
 mv * ${PROJECTROOT}
-mv .* ${PROJECTROOT}
+mv .* ${PROJECTROOT} 2> /dev/null #suppress errors and warnings
 cd ..
 rmdir ./wordpress
 
@@ -37,9 +62,10 @@ else
 fi
 
 # whipe out all plugins
-echo 'Type y  to remove all plugins! Ppress enter for default [n]: '
+echo 'Type y to remove all plugins! Ppress enter for default [n]: '
 read -p 'Input... : ' WIPEPLUGINS
 WIPEPLUGINS=${WIPEPLUGINS:-"n"}
+
 if [ "$WIPEPLUGINS" = "y" ]
 then
     rm -rf ${PROJECTROOT}/wp-content/plugins/*
@@ -47,7 +73,6 @@ then
 else
     rm -rf ${PROJECTROOT}/wp-content/plugins/{hello.php,akismet}
 fi
-
 
 
 #############################################  DATABASE MYSQL #################################################################################
@@ -78,13 +103,16 @@ wp-cli.phar core install --url=${WPURL} --title=${PROJECTNAME} --admin_user=${WP
 
 # ######################################## create themes LIB ########################################
 THEMESLIB=${SERVERWWW}/wp-themes
-mkdir ${SERVERWWW}/wp-themes
+mkdir ${SERVERWWW}/wp-themes 2> /dev/null #suppress errors and warnings
 cd ${THEMESLIB}
 
+if [ "$UPDATEFILE" = "y" ]
+then
+    wget -q -O stable.zip http://github.com/toddmotto/html5blank/archive/stable.zip # use wget or curl -O
+    # curl -O http://github.com/toddmotto/html5blank/archive/stable.zip
+    cp -r /c/users/symfony/downloads/Divi.zip $THEMESLIB
+fi
 
-wget -q -O stable.zip http://github.com/toddmotto/html5blank/archive/stable.zip # use wget or curl -O
-# curl -O http://github.com/toddmotto/html5blank/archive/stable.zip
-cp -r /c/users/symfony/downloads/Divi.zip $THEMESLIB
 
 # unzip all files
 unzip -qq \*.zip
@@ -99,31 +127,26 @@ wp-cli.phar theme activate Divi || wp-cli.phar theme activate $PROJECTNAME
 
 # ######################################## create plugin LIB ########################################
 cd $SERVERWWW
-PLUGINLIB=${SERVERWWW}/wp-plugins
-mkdir $PLUGINLIB
-
+PLUGINLIB=${SERVERWWW}/wp-plugins 
+mkdir $PLUGINLIB 2> /dev/null #suppress errors and warnings
 cd $PLUGINLIB
 
-#AFC plugin
-wget -q -O advanced-custom-fields.zip https://downloads.wordpress.org/plugin/advanced-custom-fields.5.10.2.zip
-wget -q -O better-wp-security.zip https://downloads.wordpress.org/plugin/better-wp-security.8.0.2.zip
+#Plugins: #AFC | #itsecurity | ...
 
-# cd ${PROJECTROOT}
-# wp-cli.phar plugin activate advanced-custom-fields #TODO loop over plugin dir and activate each plugin
-cd $PLUGINLIB
-for dir in *
-do
-    dir=${dir%*/}
-    ( wp-cli.phar plugin activate "$d" )
-done
+if [ "$UPDATEFILE" = "y" ]
+then
+    wget -q -O advanced-custom-fields.zip https://downloads.wordpress.org/plugin/advanced-custom-fields.5.10.2.zip
+    wget -q -O better-wp-security.zip https://downloads.wordpress.org/plugin/better-wp-security.8.0.2.zip
+fi
 
-# # unzip all zip files
+#Unzip all zip files
 unzip -qq \*.zip
 
 cp -r ${PLUGINLIB}/* ${PROJECTROOT}/wp-content/plugins
 rm ${PROJECTROOT}/wp-content/plugins/*.zip
 
 ###################### ACTIAVTE ALL PLUGINS ########################
+cd $PLUGINLIB
 array=()
 for dir in */
 do
@@ -137,11 +160,11 @@ echo "${array[@]}"
 cd ${PROJECTROOT}
 for i in "${array[@]}"
 do
-   echo "$i -> activating"
+   echo "--- $i -> activating"
    wp-cli.phar plugin activate $i
 done
 
-# # wp plugin output login info
+###################### Output DV login info ######################
 cd ${PROJECTROOT}
 echo > "_dv_login.txt"
 echo '' | tee -a "_dv_login.txt"
