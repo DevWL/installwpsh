@@ -43,7 +43,7 @@ then
     cd ${SERVERWWW}
     # EN - https://wordpress.org/latest.tar.gz
     # PL - https://pl.wordpress.org/latest-pl_PL.tar.gz
-    wget -q -O latest.tar.gz https://wordpress.org/latest.tar.gz || curl -O latest.tar.gz https://wordpress.org/latest.tar.gz #TODO - check lastest ver on local machine and copy it if it is not older then X time
+    wget -q -O latest.tar.gz https://pl.wordpress.org/latest-pl_PL.tar.gz || curl -O latest.tar.gz https://pl.wordpress.org/latest-pl_PL.tar.gz #TODO - check lastest ver on local machine and copy it if it is not older then X time
     # curl -O http://wordpress.org/latest.tar.gz
 fi
 
@@ -148,6 +148,7 @@ if [ "$UPDATEFILE" = "y" ]
 then
     wget -q -O advanced-custom-fields.zip https://downloads.wordpress.org/plugin/advanced-custom-fields.5.10.2.zip || curl -O https://downloads.wordpress.org/plugin/advanced-custom-fields.5.10.2.zip
     wget -q -O better-wp-security.zip https://downloads.wordpress.org/plugin/better-wp-security.8.0.2.zip || curl -O https://downloads.wordpress.org/plugin/better-wp-security.8.0.2.zip
+    wget -q -O all-in-one-wp-migration https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.48.zip || curl -O https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.48.zip
 fi
 
 #Unzip all zip files
@@ -184,13 +185,14 @@ wp-cli.phar post delete 1 --force #Hello World!
 wp-cli.phar post delete 2 --force #Sample Page
 
 # Add Pages - Set your own page name
-wp-cli.phar post create --post_type=page --post_status=published --post_title="Strona domowa" # replace post_title value
+wp-cli.phar post create --post_type=page --post_status=publish --post_title="Strona domowa" # replace post_title value
 wp-cli.phar post create --post_type=page --post_status=draft --post_title=Kontakt # replace post_title value
 wp-cli.phar post create --post_type=page --post_status=draft --post_title=Blog # replace post_title value
 wp-cli.phar post create --post_type=page --post_status=draft --post_title=Produkty # replace post_title value
 wp-cli.phar post create --post_type=page --post_status=draft --post_title=Usługi # replace post_title value
 wp-cli.phar post create --post_type=page --post_status=draft --post_title=Galeria # replace post_title value
 wp-cli.phar post create --post_type=page --post_status=draft --post_title=Reaizacje # replace post_title value
+wp-cli.phar option update page_on_front 4 # replace 4 with page id you want to set as homepage # all options to set available are listed at domainname/wp-admin/options.php
 
 ################### USE LARAGON CLI - LARAGON RELOAD AND OPEN ######################
 # https://laragon.org/docs/cli.html
