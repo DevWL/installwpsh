@@ -1,20 +1,30 @@
 #!/bin/bash
+
+# Version: v1.4.1
+# This script is currently under development.
+#
+# No Warranty! This script comes with no warantty of any kind. 
+# Use can use this script at your your own risk.
+# NOTICE! Note the use of "rm -rf" in the script which if missued can case data lose. Always validate and verify the script before you run it!.
+# 
 # @Author: Wiktor Liszkiewicz
 # @Email: w.liszkiewicz@gmail.com
 
-echo "This installer was created to work with Laragon Dev Env over Xampp or Wampp because it is simple better"
-echo "To be able to run this script on Winodows you first need to install:"
-echo "some linux subsystem like git-bash or cmdr"
-echo "wget and curl"
-echo "tar"
+echo "# This installer was created to work with Laragon (If you want to configure it for XAMPP you need to change hardcoded SERVERWWW path)"
+echo ""
+echo "# To be able to run this script on Winodows you first need to install:"
+echo "# some linux subsystem like git-bash or cmdr"
+echo "# wget or curl"
+echo "# tar and unizp"
 
 echo ""
-echo "If you want to add more plugins go to 'create plugin LIB' section and add wget lines to the zip file of your plugin. You can cp it from webbrowser (right click on btn > coppy url)"
-echo "All plugins will be automatically activated"
-echo "At the end you will generate output in cli and a configuration file will be generated in the project root with all the infromations needed"
+echo "# If you want to add more plugins go to 'create plugin LIB' section and add wget lines to the zip file of your plugin. You can cp it from webbrowser (right click on btn > coppy url)"
+echo "# All plugins will be automatically activated"
+echo ""
+echo "# At the end of script execution it will generate output in cli aditional a _dv_login.txt file will be generated in the project root"
 
 echo ""
-echo "Project name (without special char only letters and numbers no spacesec) press enter for default value "
+echo "# Project name (without special char only letters and numbers no spacesec) press enter for default value "
 read -p 'default [testsite]: ' PROJECTNAME
 PROJECTNAME=${PROJECTNAME:-"testsite"}
 
@@ -26,12 +36,14 @@ mkdir ${PROJECTROOT}
 cd ${PROJECTROOT}
 # cd ..
 
-echo "Get fresh files? Requiered when runing first time!"
-read -p 'y/n: ' UPDATEFILE
+echo "# Get fresh files? Requiered when runing first time!"
+read -p 'y/n default [n]' UPDATEFILE
 if [ "$UPDATEFILE" = "y" ]
 then
     cd ${SERVERWWW}
-    wget -q -O latest.tar.gz https://wordpress.org/latest.tar.gz #TODO - check lastest ver on local machine and copy it if it is not older then X time
+    # EN - https://wordpress.org/latest.tar.gz
+    # PL - https://pl.wordpress.org/latest-pl_PL.tar.gz
+    wget -q -O latest.tar.gz https://wordpress.org/latest.tar.gz || curl -O latest.tar.gz https://wordpress.org/latest.tar.gz #TODO - check lastest ver on local machine and copy it if it is not older then X time
     # curl -O http://wordpress.org/latest.tar.gz
 fi
 
@@ -50,8 +62,8 @@ rmdir ./wordpress
 #############################################  PLUGIN AND THEME CLEANUP #################################################################################
 
 # whipe out all themes
-echo "Type 'y' to remove all themes! or Press enter for default [n]: "
-read -p 'Input... : ' WIPETHEMES
+echo "# Type 'y' to remove all themes! or Press enter for default [n]: "
+read -p 'Press ENTER for  default [n]: ' WIPETHEMES
 WIPETHEMES=${WIPETHEMES:-"n"}
 
 if [ "$WIPETHEMES" = "y" ]
@@ -63,8 +75,8 @@ else
 fi
 
 # whipe out all plugins
-echo 'Type y to remove all plugins! Ppress enter for default [n]: '
-read -p 'Input... : ' WIPEPLUGINS
+echo '# Type y to remove all plugins! Ppress enter for default [n]: '
+read -p 'Press ENTER for  default [n]: ' WIPEPLUGINS
 WIPEPLUGINS=${WIPEPLUGINS:-"n"}
 
 if [ "$WIPEPLUGINS" = "y" ]
@@ -106,14 +118,14 @@ cd ${THEMESLIB}
 
 if [ "$UPDATEFILE" = "y" ]
 then
-    wget -q -O stable.zip http://github.com/toddmotto/html5blank/archive/stable.zip # use wget or curl -O
+    wget -q -O stable.zip http://github.com/toddmotto/html5blank/archive/stable.zip || curl -O http://github.com/toddmotto/html5blank/archive/stable.zip # use wget or curl -O
     # curl -O http://github.com/toddmotto/html5blank/archive/stable.zip
     cp -r /c/users/symfony/downloads/Divi.zip $THEMESLIB
 fi
 
 
 # unzip all files
-unzip -qq \*.zip
+unzip -qqo \*.zip
 
 cp -r ${THEMESLIB}/* ${PROJECTROOT}/wp-content/themes
 rm ${PROJECTROOT}/wp-content/themes/*.zip
@@ -134,12 +146,12 @@ cd $PLUGINLIB
 
 if [ "$UPDATEFILE" = "y" ]
 then
-    wget -q -O advanced-custom-fields.zip https://downloads.wordpress.org/plugin/advanced-custom-fields.5.10.2.zip
-    wget -q -O better-wp-security.zip https://downloads.wordpress.org/plugin/better-wp-security.8.0.2.zip
+    wget -q -O advanced-custom-fields.zip https://downloads.wordpress.org/plugin/advanced-custom-fields.5.10.2.zip || curl -O https://downloads.wordpress.org/plugin/advanced-custom-fields.5.10.2.zip
+    wget -q -O better-wp-security.zip https://downloads.wordpress.org/plugin/better-wp-security.8.0.2.zip || curl -O https://downloads.wordpress.org/plugin/better-wp-security.8.0.2.zip
 fi
 
 #Unzip all zip files
-unzip -qq \*.zip
+unzip -qqo \*.zip
 
 cp -r ${PLUGINLIB}/* ${PROJECTROOT}/wp-content/plugins
 rm ${PROJECTROOT}/wp-content/plugins/*.zip
@@ -166,20 +178,26 @@ do
 done
 
 
-###################### ADD REMOVE PAGES POSTS ######################
+###################### USE WP-CLI - ADD REMOVE PAGES/POSTS ######################
 # Remove posts/pages
 wp-cli.phar post delete 1 --force #Hello World!
 wp-cli.phar post delete 2 --force #Sample Page
 
-# Add Pages
-wp-cli.phar post create --post_type=page --post_title="Strona domowa"
-wp-cli.phar post create --post_type=page --post_title=Kontakt
-wp-cli.phar post create --post_type=page --post_title=Blog
-wp-cli.phar post create --post_type=page --post_title=Produkty
-wp-cli.phar post create --post_type=page --post_title=Usługi
-wp-cli.phar post create --post_type=page --post_title=Galeria
-wp-cli.phar post create --post_type=page --post_title=Reaizacje
+# Add Pages - Set your own page name
+wp-cli.phar post create --post_type=page --post_status=published --post_title="Strona domowa" # replace post_title value
+wp-cli.phar post create --post_type=page --post_status=draft --post_title=Kontakt # replace post_title value
+wp-cli.phar post create --post_type=page --post_status=draft --post_title=Blog # replace post_title value
+wp-cli.phar post create --post_type=page --post_status=draft --post_title=Produkty # replace post_title value
+wp-cli.phar post create --post_type=page --post_status=draft --post_title=Usługi # replace post_title value
+wp-cli.phar post create --post_type=page --post_status=draft --post_title=Galeria # replace post_title value
+wp-cli.phar post create --post_type=page --post_status=draft --post_title=Reaizacje # replace post_title value
 
+################### USE LARAGON CLI - LARAGON RELOAD AND OPEN ######################
+# https://laragon.org/docs/cli.html
+LARAGONPATH="/c/laragon" # chnge this line if your instalation is placed in different file
+${LARAGONPATH}/laragon reload
+start https://${PROJECTNAME}.dv
+start https://${PROJECTNAME}.dv/wp-admin
 
 ###################### Output DV login info ######################
 cd ${PROJECTROOT}
@@ -196,3 +214,4 @@ echo "WP Url: ${WPURL}" | tee -a "_dv_login.txt"
 echo "WP User: ${WPUSER}" | tee -a "_dv_login.txt"
 echo "WP Pass: ${WPPASS}" | tee -a "_dv_login.txt"
 echo "WP Email: ${WPEMAIL}" | tee -a "_dv_login.txt"
+
