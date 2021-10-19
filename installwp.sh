@@ -1,21 +1,26 @@
 #!/bin/bash
 
 # Version: v1.4.1
-# This script is currently under development.
+# This script is currently under development (alpha version).
+# Next version will proceed as fallow: version v2.0.0 (beta), version v3.0.0 (RC) and finely v4.0.0 (first stable).
+# Feel free to contribute to fix anny spoted issues.
 #
-# No Warranty! This script comes with no warantty of any kind. 
-# Use can use this script at your your own risk.
-# NOTICE! Note the use of "rm -rf" in the script which if missued can case data lose. Always validate and verify the script before you run it!.
+# WARNING! No Warranty! This script comes with no warantty of any kind. 
+# You can use this script at your own risk.
+# NOTICE! Note the use of "rm -rf" in the script which if missued can cause data lost. Always validate and verify the script before you run it!.
 # 
 # @Author: Wiktor Liszkiewicz
 # @Email: w.liszkiewicz@gmail.com
 
 echo "# This installer was created to work with Laragon (If you want to configure it for XAMPP you need to change hardcoded SERVERWWW path)"
-echo ""
 echo "# To be able to run this script on Winodows you first need to install:"
 echo "# some linux subsystem like git-bash or cmdr"
 echo "# wget or curl"
 echo "# tar and unizp"
+
+echo ""
+echo "---### WARNING! No Warranty! This script comes with no warantty of any kind (this shell script uses \"rm -rf\" so be cautious!) ###---"
+echo "# If you ahve any question you can try to reach me at w.liszkiewicz@gmail.com"
 
 echo ""
 echo "# If you want to add more plugins go to 'create plugin LIB' section and add wget lines to the zip file of your plugin. You can cp it from webbrowser (right click on btn > coppy url)"
@@ -43,7 +48,8 @@ then
     cd ${SERVERWWW}
     # EN - https://wordpress.org/latest.tar.gz
     # PL - https://pl.wordpress.org/latest-pl_PL.tar.gz
-    wget -q -O latest.tar.gz https://pl.wordpress.org/latest-pl_PL.tar.gz || curl -O latest.tar.gz https://pl.wordpress.org/latest-pl_PL.tar.gz #TODO - check lastest ver on local machine and copy it if it is not older then X time
+    WPSRC='https://wordpress.org/latest.tar.gz'
+    wget -q -O latest.tar.gz ${WPSRC} || curl -O latest.tar.gz ${WPSRC} #TODO - check lastest ver on local machine and copy it if it is not older then X time
     # curl -O http://wordpress.org/latest.tar.gz
 fi
 
@@ -117,10 +123,14 @@ mkdir ${SERVERWWW}/wp-themes 2> /dev/null #suppress errors and warnings
 cd ${THEMESLIB}
 
 if [ "$UPDATEFILE" = "y" ]
+
 then
-    wget -q -O stable.zip http://github.com/toddmotto/html5blank/archive/stable.zip || curl -O http://github.com/toddmotto/html5blank/archive/stable.zip # use wget or curl -O
-    # curl -O http://github.com/toddmotto/html5blank/archive/stable.zip
-    cp -r /c/users/symfony/downloads/Divi.zip $THEMESLIB
+    THEMESRC='http://github.com/toddmotto/html5blank/archive/stable.zip' # edit if needed
+    THEMEBASENAME=$(basename -- $THEMESRC)
+    wget -q -O $THEMEBASENAME ${THEMESRC} || curl -O ${THEMESRC}
+
+    ## OR GET THEMES FROM LOCAL DIR LIKE THIS
+    # cp -r /c/users/symfony/downloads/Divi.zip $THEMESLIB
 fi
 
 
@@ -142,16 +152,29 @@ PLUGINLIB=${SERVERWWW}/wp-plugins
 mkdir $PLUGINLIB 2> /dev/null #suppress errors and warnings
 cd $PLUGINLIB
 
-#Plugins: #AFC | #itsecurity | ...
+# DOWNLOAD PLUGIN ARRAY: #AFC | #itsecurity | ...
+# https://www.linuxjournal.com/content/bash-arrays
 
 if [ "$UPDATEFILE" = "y" ]
+cd $PLUGINLIB
 then
-    wget -q -O advanced-custom-fields.zip https://downloads.wordpress.org/plugin/advanced-custom-fields.5.10.2.zip || curl -O https://downloads.wordpress.org/plugin/advanced-custom-fields.5.10.2.zip
-    wget -q -O better-wp-security.zip https://downloads.wordpress.org/plugin/better-wp-security.8.0.2.zip || curl -O https://downloads.wordpress.org/plugin/better-wp-security.8.0.2.zip
-    wget -q -O all-in-one-wp-migration https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.48.zip || curl -O https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.48.zip
+    PLUGINARR=()
+    PLUGINARR+=('https://downloads.wordpress.org/plugin/advanced-custom-fields.5.10.2.zip')
+    PLUGINARR+=('https://downloads.wordpress.org/plugin/better-wp-security.8.0.2.zip')
+    PLUGINARR+=('https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.48.zip')
+    PLUGINARR+=('https://downloads.wordpress.org/plugin/duplicate-post.4.1.2.zip')
+    #PLUGINARR+=('add another url here')
+    
+    for PLUGIN in ${PLUGINARR[*]}
+    do
+        # printf "   %s\n" $PLUGIN
+        PLUGINBASENAME=$(basename -- $PLUGIN)
+        wget -q -O $PLUGINBASENAME $PLUGIN || curl -O $PLUGIN
+    done
 fi
 
-#Unzip all zip files
+# UNZIP all zip files
+cd $PLUGINLIB
 unzip -qqo \*.zip
 
 cp -r ${PLUGINLIB}/* ${PROJECTROOT}/wp-content/plugins
@@ -185,13 +208,12 @@ wp-cli.phar post delete 1 --force #Hello World!
 wp-cli.phar post delete 2 --force #Sample Page
 
 # Add Pages - Set your own page name
-wp-cli.phar post create --post_type=page --post_status=publish --post_title="Strona domowa" # replace post_title value
-wp-cli.phar post create --post_type=page --post_status=draft --post_title=Kontakt # replace post_title value
+wp-cli.phar post create --post_type=page --post_status=publish --post_title="Home Page" # replace post_title value
+wp-cli.phar post create --post_type=page --post_status=draft --post_title=Contact # replace post_title value
 wp-cli.phar post create --post_type=page --post_status=draft --post_title=Blog # replace post_title value
-wp-cli.phar post create --post_type=page --post_status=draft --post_title=Produkty # replace post_title value
-wp-cli.phar post create --post_type=page --post_status=draft --post_title=Usługi # replace post_title value
-wp-cli.phar post create --post_type=page --post_status=draft --post_title=Galeria # replace post_title value
-wp-cli.phar post create --post_type=page --post_status=draft --post_title=Reaizacje # replace post_title value
+wp-cli.phar post create --post_type=page --post_status=draft --post_title=Services # replace post_title value
+wp-cli.phar post create --post_type=page --post_status=draft --post_title=Gallery # replace post_title value
+wp-cli.phar post create --post_type=page --post_status=draft --post_title=Portfolio # replace post_title value
 wp-cli.phar option update page_on_front 4 # replace 4 with page id you want to set as homepage # all options to set available are listed at domainname/wp-admin/options.php
 
 ################### USE LARAGON CLI - LARAGON RELOAD AND OPEN ######################
