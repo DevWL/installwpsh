@@ -178,45 +178,45 @@ echo "# Project name (without special char only letters and numbers no spacesec)
     mkdir $PLUGINLIB 2> /dev/null #suppress errors and warnings
     cd $PLUGINLIB
 
-# DOWNLOAD PLUGIN ARRAY: #AFC | #itsecurity | ...
-# OR SKIP THIS STEP IF YOU WANT TO DOWNLOAD PLUGINS WITH WP-CLI
-# https://www.linuxjournal.com/content/bash-arrays
+# # DOWNLOAD PLUGIN ARRAY WITH WGET OR CURL
+# # OR SKIP THIS STEP IF YOU WANT TO DOWNLOAD PLUGINS WITH WP-CLI
+# # https://www.linuxjournal.com/content/bash-arrays
 
-    # if [ "$UPDATEFILE" = "y" ]
-    # cd $PLUGINLIB
-    # then
-    #     PLUGINARR=()
-    #     PLUGINARR+=('https://downloads.wordpress.org/plugin/advanced-custom-fields.5.10.2.zip')
-    #     PLUGINARR+=('https://downloads.wordpress.org/plugin/better-wp-security.8.0.2.zip')
-    #     PLUGINARR+=('https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.48.zip')
-    #     PLUGINARR+=('https://downloads.wordpress.org/plugin/duplicate-post.4.1.2.zip')
-    #     #PLUGINARR+=('add another url here')
+#     # if [ "$UPDATEFILE" = "y" ]
+#     # cd $PLUGINLIB
+#     # then
+#     #     PLUGINARR=()
+#     #     PLUGINARR+=('https://downloads.wordpress.org/plugin/advanced-custom-fields.5.10.2.zip')
+#     #     PLUGINARR+=('https://downloads.wordpress.org/plugin/better-wp-security.8.0.2.zip')
+#     #     PLUGINARR+=('https://downloads.wordpress.org/plugin/all-in-one-wp-migration.7.48.zip')
+#     #     PLUGINARR+=('https://downloads.wordpress.org/plugin/duplicate-post.4.1.2.zip')
+#     #     #PLUGINARR+=('add another url here')
         
-    #     for PLUGIN in ${PLUGINARR[*]}
-    #     do
-    #         # printf "   %s\n" $PLUGIN
-    #         PLUGINBASENAME=$(basename -- $PLUGIN)
-    #         ## wget -O $PLUGINBASENAME $PLUGIN || curl -O $PLUGIN
-    #         while [ 1 ]; do
-    #             wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 --continue -O ${PLUGINBASENAME} ${PLUGIN} || curl -O ${PLUGIN}
-    #             if [ $? = 0 ]; then break; fi; # check return value, break if successful (0)
-    #             sleep 2s;
-    #         done;
-    #     done
+#     #     for PLUGIN in ${PLUGINARR[*]}
+#     #     do
+#     #         # printf "   %s\n" $PLUGIN
+#     #         PLUGINBASENAME=$(basename -- $PLUGIN)
+#     #         ## wget -O $PLUGINBASENAME $PLUGIN || curl -O $PLUGIN
+#     #         while [ 1 ]; do
+#     #             wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 --continue -O ${PLUGINBASENAME} ${PLUGIN} || curl -O ${PLUGIN}
+#     #             if [ $? = 0 ]; then break; fi; # check return value, break if successful (0)
+#     #             sleep 2s;
+#     #         done;
+#     #     done
 
-    #     for PLUGIN in ${PLUGINARR[*]}
-    #     do
-    #         cd ${PROJECTROOT}
-    #         wp-cli.phar plugin install ${PLUGINLIB}/${PLUGIN} --activate
-    #     done
-    # fi
+#     #     for PLUGIN in ${PLUGINARR[*]}
+#     #     do
+#     #         cd ${PROJECTROOT}
+#     #         wp-cli.phar plugin install ${PLUGINLIB}/${PLUGIN} --activate
+#     #     done
+#     # fi
 
-    # # UNZIP all zip files
-    # cd $PLUGINLIB
-    # unzip -qqo \*.zip
+#     # # UNZIP all zip files
+#     # cd $PLUGINLIB
+#     # unzip -qqo \*.zip
 
-    # cp -r ${PLUGINLIB}/* ${PROJECTROOT}/wp-content/plugins
-    # rm ${PROJECTROOT}/wp-content/plugins/*.zip
+#     # cp -r ${PLUGINLIB}/* ${PROJECTROOT}/wp-content/plugins
+#     # rm ${PROJECTROOT}/wp-content/plugins/*.zip
 
 
 ###################### WP-CLI ACTIAVTE ALL PLUGINS BASED ON plugin dir content ########################
@@ -261,14 +261,6 @@ echo "# Project name (without special char only letters and numbers no spacesec)
             cd ${PROJECTROOT}
             wp-cli.phar plugin install ${PLUGIN} --activate
         done
-
-        # wp-cli.phar plugin install better-wp-security --activate
-        # wp-cli.phar plugin install advanced-custom-fields --activate
-        # wp-cli.phar plugin install all-in-one-wp-migration --activate
-        # wp-cli.phar plugin install duplicate-post --activate
-        # wp-cli.phar plugin install enable-media-replace --activate
-        # wp-cli.phar plugin install wp-fastest-cache --activate
-        # wp-cli.phar plugin install wordpress-seo --activate
 
         cp -r ${PROJECTROOT}/wp-content/plugins/* ${PLUGINLIB}
         cd ${PLUGINLIB}
