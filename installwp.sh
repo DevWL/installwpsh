@@ -264,14 +264,17 @@ echo "# Project name (without special char only letters and numbers no spacesec)
 
         cp -r ${PROJECTROOT}/wp-content/plugins/* ${PLUGINLIB}
         cd ${PLUGINLIB}
+        #TODO remove zip and copy only
         # for i in */; do zip -0 -r "${i%/}.zip" "$i" & done; wait # with zip
-        for i in */; do tar -a -c -f "${i%/}.zip" "$i" & done; wait # with tar https://techcommunity.microsoft.com/t5/containers/tar-and-curl-come-to-windows/ba-p/382409
+        # for i in */; do tar -a -c -f "${i%/}.zip" "$i" & done; wait # with tar https://techcommunity.microsoft.com/t5/containers/tar-and-curl-come-to-windows/ba-p/382409
 
     else
+        #TODO 
         for PLUGIN in ${PLUGINSLIST[*]}
         do
+            cp -r ${PLUGINLIB}/* ${PROJECTROOT}/wp-content/plugins
             cd ${PROJECTROOT}
-            wp-cli.phar plugin install ${PLUGINLIB}/${PLUGIN}.zip --activate
+            wp-cli.phar plugin activate ${PLUGIN}
         done
     fi
     ## TODO COPY PLUGINS TO $PLUGINLIB if n install from $PLUGINLIB looping over filedir
