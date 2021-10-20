@@ -11,25 +11,28 @@
 # 
 # @Author: Wiktor Liszkiewicz
 # @Email: w.liszkiewicz@gmail.com
+    echo "# Turn on laragon and run server and mysql"
+    echo "# This installer was created to work with Laragon (If you want to configure it for XAMPP you need to change hardcoded SERVERWWW path)"
+    echo "# To be able to run this script on Winodows you first need to install:"
+    echo "# some linux subsystem like git-bash or cmdr"
+    echo "# wget or curl"
+    echo "# tar, zip and unizp" #https://superuser.com/questions/201371/create-zip-folder-from-the-command-line-windows #http://gnuwin32.sourceforge.net/packages/zip.htm
 
-echo "# This installer was created to work with Laragon (If you want to configure it for XAMPP you need to change hardcoded SERVERWWW path)"
-echo "# To be able to run this script on Winodows you first need to install:"
-echo "# some linux subsystem like git-bash or cmdr"
-echo "# wget or curl"
-echo "# tar, zip and unizp" #https://superuser.com/questions/201371/create-zip-folder-from-the-command-line-windows #http://gnuwin32.sourceforge.net/packages/zip.htm
+    echo ""
+    echo "---### WARNING! No Warranty! This script comes with no warantty of any kind (this shell script uses \"rm -rf\" so be cautious!) ###---"
+    echo "# If you ahve any question you can try to reach me at w.liszkiewicz@gmail.com"
 
-echo ""
-echo "---### WARNING! No Warranty! This script comes with no warantty of any kind (this shell script uses \"rm -rf\" so be cautious!) ###---"
-echo "# If you ahve any question you can try to reach me at w.liszkiewicz@gmail.com"
+    echo ""
+    echo "# If you want to add more plugins go to 'create plugin LIB' section and add wget lines to the zip file of your plugin. You can cp it from webbrowser (right click on btn > coppy url)"
+    echo "# All plugins will be automatically activated"
+    echo ""
+    echo "# At the end of script execution it will generate output in cli aditional a _dv_login.txt file will be generated in the project root"
 
-echo ""
-echo "# If you want to add more plugins go to 'create plugin LIB' section and add wget lines to the zip file of your plugin. You can cp it from webbrowser (right click on btn > coppy url)"
-echo "# All plugins will be automatically activated"
-echo ""
-echo "# At the end of script execution it will generate output in cli aditional a _dv_login.txt file will be generated in the project root"
+    echo ""
+    echo "# Project name (without special char only letters and numbers no spacesec) press enter for default value "
 
-echo ""
-echo "# Project name (without special char only letters and numbers no spacesec) press enter for default value "
+############################################# run LARAGON ###################################################################################
+    # manualy
 
 #############################################  INITIAL SETUP #################################################################################
     read -p 'default [testsite]: ' PROJECTNAME
@@ -52,14 +55,13 @@ echo "# Project name (without special char only letters and numbers no spacesec)
 
 #############################################  DOWNLOAD WP || LOAD LOCAL FILE  #################################################################################
 #https://superuser.com/questions/493640/how-to-retry-connections-with-wget
+    WPSRC='https://pl.wordpress.org/latest-pl_PL.tar.gz' # EN - https://wordpress.org/latest.tar.gz # PL - https://pl.wordpress.org/latest-pl_PL.tar.gz
+    WPCMSBASENAME=$(basename -- $WPSRC)
+    cd ${SERVERWWW}
+
     if [ "$UPDATEFILE" = "y" ]
     then
-        cd ${SERVERWWW}
-        
-        WPSRC='https://wordpress.org/latest.tar.gz' # EN - https://wordpress.org/latest.tar.gz # PL - https://pl.wordpress.org/latest-pl_PL.tar.gz
-        WPCMSBASENAME=$(basename -- $WPSRC)
         # wget --tries=70 -O latest.tar.gz ${WPSRC} || curl -O latest.tar.gz ${WPSRC} #TODO - check lastest ver on local machine and copy it if it is not older then X time
-
         while [ 1 ]; do
             wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 --continue -O ${WPCMSBASENAME} ${WPSRC} || curl -O ${WPSRC}
             if [ $? = 0 ]; then break; fi; # check return value, break if successful (0)
@@ -68,11 +70,10 @@ echo "# Project name (without special char only letters and numbers no spacesec)
         # curl -O http://wordpress.org/latest.tar.gz 
     fi
 
-
-
-    cp ${SERVERWWW}/latest.tar.gz ${PROJECTROOT}
+    cp ${SERVERWWW}/${WPCMSBASENAME} ${PROJECTROOT}
     cd ${PROJECTROOT}
-    tar -xzf latest.tar.gz || exit $?
+    file ${WPCMSBASENAME}
+    tar -xf ${WPCMSBASENAME} || exit $?
     cd ./wordpress || exit $?
     cd ${PROJECTROOT}/wordpress # another way
 
@@ -85,30 +86,13 @@ echo "# Project name (without special char only letters and numbers no spacesec)
 #############################################  PLUGIN AND THEME CLEANUP #################################################################################
 
     # Whipe out all themes
-    echo "# Type 'y' to remove all themes! or Press enter for default [n]: "
-    read -p 'Press ENTER for  default [n]: ' WIPETHEMES
-    WIPETHEMES=${WIPETHEMES:-"n"}
-
-    if [ "$WIPETHEMES" = "y" ]
-    then
-        rm -rf ${PROJECTROOT}/wp-content/themes/*
-        cp ${PROJECTROOT}/wp-content/plugins/index.php ${PROJECTROOT}/wp-content/themes
-    else
+        echo '# Removeing default themes: '
+        # rm -rf ${PROJECTROOT}/wp-content/themes/*
         rm -rf ${PROJECTROOT}/wp-content/themes/{twentynineteen,twentyseventeen,twentysixteen,twentytwenty,twentytwentyone}
-    fi
 
     # Whipe out all plugins
-    echo '# Type y to remove all plugins! Ppress enter for default [n]: '
-    read -p 'Press ENTER for  default [n]: ' WIPEPLUGINS
-    WIPEPLUGINS=${WIPEPLUGINS:-"n"}
-
-    if [ "$WIPEPLUGINS" = "y" ]
-    then
-        rm -rf ${PROJECTROOT}/wp-content/plugins/*
-        cp ${PROJECTROOT}/wp-content/themes/index.php ${PROJECTROOT}/wp-content/plugins
-    else
+        echo '# Removeing default plugins: '
         rm -rf ${PROJECTROOT}/wp-content/plugins/{hello.php,akismet}
-    fi
 
 
 #############################################  DATABASE MYSQL #################################################################################
@@ -123,23 +107,26 @@ echo "# Project name (without special char only letters and numbers no spacesec)
 
     # # Create config file # note I have used .dv instead of laragon default .test local domain extension
 
-    WPUSER="Admin"
-    WPPASS="laragon123"
-    DOMAINEXT="dv"
+    WPUSER="Laragon"
+    WPPASS="silentisgold"
+    DOMAINEXT="dv" # laradgon default is "test" <<<< edit if needed
     WPURL="https://${PROJECTNAME}.${DOMAINEXT}"
 
     cd ${PROJECTROOT}
     wp-cli.phar core config --dbname=$PROJECTNAME --dbuser=$PROJECTNAME
     wp-cli.phar core install --url=${WPURL} --title=${PROJECTNAME} --admin_user=${WPUSER} --admin_password=${WPPASS} --admin_email=${WPEMAIL}
+    # wp https://make.wordpress.org/cli/handbook/guides/installing/
 
 
 # ######################################## create themes LIB ########################################
     THEMESLIB=${SERVERWWW}/wp-themes
-    mkdir ${SERVERWWW}/wp-themes 2> /dev/null #suppress errors and warnings
+    if [ ! -d ${THEMESLIB} ]
+    then
+        mkdir ${SERVERWWW}/wp-themes 2> /dev/null #suppress errors and warnings
+    fi
+
     cd ${THEMESLIB}
-
     if [ "$UPDATEFILE" = "y" ]
-
     then
         THEMESRC='http://github.com/toddmotto/html5blank/archive/stable.zip' # <<<<< edit if needed
         THEMEBASENAME=$(basename -- $THEMESRC)
@@ -150,8 +137,11 @@ echo "# Project name (without special char only letters and numbers no spacesec)
             sleep 2s;
         done;
         ## OR GET THEMES FROM LOCAL DIR LIKE THIS
-        cp -r /c/users/symfony/downloads/Divi.zip $THEMESLIB # <<<<< edit if needed
     fi
+
+    LOCALTHEMESRC='/c/users/symfony/downloads/Divi.zip' # <<<<< edit if needed
+    LOCALTHEMEBASENAME=$(basename -- $LOCALTHEMESRC)
+    cp -r ${LOCALTHEMESRC} ${THEMESLIB} # <<<<< edit if needed    
 
     ##################### <<<<<<<<<<<<<<<<<<<<<<<<<< replace
     # ## unzip all files
@@ -169,7 +159,16 @@ echo "# Project name (without special char only letters and numbers no spacesec)
 
     cd ${PROJECTROOT}
     # wp-cli.phar theme install ${THEMESLIB}/$THEMEBASENAME --activate
-    wp-cli.phar theme install ${THEMESLIB}/Divi.zip --activate
+    wp-cli.phar theme install ${THEMESLIB}/${LOCALTHEMEBASENAME}
+
+    # remove extension from filename > https://stackoverflow.com/questions/2664740/extract-file-basename-without-path-and-extension-in-bash > https://linuxgazette.net/18/bash.html
+    PARENTTHEME=${LOCALTHEMEBASENAME%%.*}
+    CHILDTHEME=${PARENTTHEME}-child
+    echo "Creating child-theme ${PARENTTHEME}-child for ${PARENTTHEME} parrent theme"
+
+    wp-cli.phar scaffold child-theme ${CHILDTHEME} --parent_theme=${PARENTTHEME} --activate
+
+    # wp-cli.phar theme activate ${CHILDTHEME}
     ## [i] For manual theme selection you can do: wp-cli.phar theme install ${THEMESLIB}/Divi.zip --activate
 
 # ######################################## create plugin LIB ########################################
@@ -239,6 +238,9 @@ echo "# Project name (without special char only letters and numbers no spacesec)
 
     # done
 
+###################### INSTALL SAMPLE PLUGIN #########################
+    cd ${PROJECTROOT}
+    wp-cli.phar scaffold plugin ${CHILDTHEME}-plugin
 
 ###################### WP-CLI INSTALL PLUGINS ########################
 # https://developer.wordpress.org/cli/commands/
