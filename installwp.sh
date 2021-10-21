@@ -61,6 +61,7 @@
 
     if [ "$UPDATEFILE" = "y" ]
     then
+        rm ${SERVERWWW}/$WPSRC
         # wget --tries=70 -O latest.tar.gz ${WPSRC} || curl -O latest.tar.gz ${WPSRC} #TODO - check lastest ver on local machine and copy it if it is not older then X time
         while [ 1 ]; do
             wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 --continue -O ${WPCMSBASENAME} ${WPSRC} || curl -O ${WPSRC}
