@@ -61,7 +61,8 @@
 
     if [ "$UPDATEFILE" = "y" ]
     then
-        rm ${SERVERWWW}/$WPSRC
+        echo "Removing old WP src ${SERVERWWW}/$WPCMSBASENAME"
+        rm ${SERVERWWW}/$WPCMSBASENAME
         # wget --tries=70 -O latest.tar.gz ${WPSRC} || curl -O latest.tar.gz ${WPSRC} #TODO - check lastest ver on local machine and copy it if it is not older then X time
         while [ 1 ]; do
             wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 --continue -O ${WPCMSBASENAME} ${WPSRC} || curl -O ${WPSRC}
@@ -132,6 +133,8 @@
     cd ${THEMESLIB}
     if [ "$UPDATEFILE" = "y" ]
     then
+        echo "Removing old theme ${THEMESLIB}/$THEMEBASENAME"
+        rm ${THEMESLIB}/$THEMEBASENAME
         while [ 1 ]; do
             wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 --continue -O $THEMEBASENAME ${THEMESRC} || curl -O ${THEMESRC}
             if [ $? = 0 ]; then break; fi; # check return value, break if successful (0)
