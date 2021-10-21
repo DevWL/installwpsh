@@ -55,7 +55,7 @@
 
 #############################################  DOWNLOAD WP || LOAD LOCAL FILE  #################################################################################
 #https://superuser.com/questions/493640/how-to-retry-connections-with-wget
-    WPSRC='https://pl.wordpress.org/latest-pl_PL.tar.gz' # EN - https://wordpress.org/latest.tar.gz # PL - https://pl.wordpress.org/latest-pl_PL.tar.gz
+    WPSRC='https://wordpress.org/latest.tar.gz' # EN - https://wordpress.org/latest.tar.gz # PL - https://pl.wordpress.org/latest-pl_PL.tar.gz
     WPCMSBASENAME=$(basename -- $WPSRC)
     cd ${SERVERWWW}
 
@@ -127,7 +127,8 @@
         mkdir ${SERVERWWW}/wp-themes 2> /dev/null #suppress errors and warnings
     fi
 
-    THEMESRC='http://github.com/toddmotto/html5blank/archive/stable.zip' # <<<<< edit if needed
+    # THEMESRC='http://github.com/toddmotto/html5blank/archive/stable.zip' # <<<<< edit if needed [HTML5BLANK]
+    THEMESRC='https://github.com/Automattic/_s/archive/refs/heads/master.zip' # <<<<< edit if needed [_S]
     THEMEBASENAME=$(basename -- $THEMESRC)
 
     cd ${THEMESLIB}
