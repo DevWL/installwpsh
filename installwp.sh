@@ -125,12 +125,12 @@
         mkdir ${SERVERWWW}/wp-themes 2> /dev/null #suppress errors and warnings
     fi
 
+    THEMESRC='http://github.com/toddmotto/html5blank/archive/stable.zip' # <<<<< edit if needed
+    THEMEBASENAME=$(basename -- $THEMESRC)
+
     cd ${THEMESLIB}
     if [ "$UPDATEFILE" = "y" ]
     then
-        THEMESRC='http://github.com/toddmotto/html5blank/archive/stable.zip' # <<<<< edit if needed
-        THEMEBASENAME=$(basename -- $THEMESRC)
-        
         while [ 1 ]; do
             wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 --continue -O $THEMEBASENAME ${THEMESRC} || curl -O ${THEMESRC}
             if [ $? = 0 ]; then break; fi; # check return value, break if successful (0)
@@ -139,9 +139,9 @@
         ## OR GET THEMES FROM LOCAL DIR LIKE THIS
     fi
 
-    LOCALTHEMESRC='/c/users/symfony/downloads/Divi.zip' # <<<<< edit if needed
-    LOCALTHEMEBASENAME=$(basename -- $LOCALTHEMESRC)
-    cp -r ${LOCALTHEMESRC} ${THEMESLIB} # <<<<< edit if needed    
+    # LOCALTHEMESRC='/c/users/symfony/downloads/Divi.zip' # <<<<< edit if needed
+    # LOCALTHEMEBASENAME=$(basename -- $LOCALTHEMESRC)
+    # cp -r ${LOCALTHEMESRC} ${THEMESLIB} # <<<<< edit if needed    
 
     ##################### <<<<<<<<<<<<<<<<<<<<<<<<<< replace
     # ## unzip all files
@@ -159,12 +159,17 @@
 
     cd ${PROJECTROOT}
     # wp-cli.phar theme install ${THEMESLIB}/$THEMEBASENAME --activate
-    wp-cli.phar theme install ${THEMESLIB}/${LOCALTHEMEBASENAME}
+    wp-cli.phar theme install ${THEMESLIB}/${THEMEBASENAME}
+    
+    # find the unzpi folder name
+    UZIPFOLDERNAME=$(unzip -qql ${THEMESLIB}/${THEMEBASENAME} | head -n1 | tr -s ' ' | cut -d' ' -f5-)
+    UZIPFOLDERNAMEMOD=${UZIPFOLDERNAME::-1} # remove forwar slash at the end of the dir name
+    # UZIPFOLDERNAMEMOD=${UZIPFOLDERNAMEMOD//-stable/} # remove given fraze from folder name https://unix.stackexchange.com/questions/311758/remove-specific-word-in-variable
 
     # remove extension from filename > https://stackoverflow.com/questions/2664740/extract-file-basename-without-path-and-extension-in-bash > https://linuxgazette.net/18/bash.html
-    PARENTTHEME=${LOCALTHEMEBASENAME%%.*}
+    PARENTTHEME=${UZIPFOLDERNAMEMOD%%.*}
     CHILDTHEME=${PARENTTHEME}-child
-    echo "Creating child-theme ${PARENTTHEME}-child for ${PARENTTHEME} parrent theme"
+    echo "Creating child-theme ${CHILDTHEME} for ${PARENTTHEME} parrent theme"
 
     wp-cli.phar scaffold child-theme ${CHILDTHEME} --parent_theme=${PARENTTHEME} --activate
 
