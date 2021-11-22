@@ -35,15 +35,37 @@
     # manualy
 
 #############################################  INITIAL SETUP #################################################################################
-    read -p 'default [testsite]: ' PROJECTNAME
-    PROJECTNAME=${PROJECTNAME:-"testsite"}
+    DOMAINEXT="dv" # laradgon default is "test" <<<< edit if needed
+
+    ACCEPT="n"
+    TEMPNAME=demo1
+    PROJECTNAME=${TEMPNAME}
+    # TODO - validate proper user inputs
+    while [ "${ACCEPT}" != "y" ] && [ ${#PROJECTNAME} -ge 1 ] && [[ "$PROJECTNAME" =~ [a-zA-Z0-9] ]] && [[ "${PROJECTNAME:0:1}" =~ [a-zA-Z] ]]; do
+        if [[ "$PROJECTNAME" =~ [^a-zA-Z0-9] ]] || [[ "${PROJECTNAME:0:1}" =~ [^a-zA-Z] ]]; then
+            echo "Only letters and numbers allowed. First char has to be a letter"
+        fi
+        
+        read -p "default [${TEMPNAME}]: " PROJECTNAME
+        PROJECTNAME=${PROJECTNAME:-"${TEMPNAME}"}
+        PROJECTNAME=${PROJECTNAME##*/}
+        PROJECTNAME=${PROJECTNAME%.*}
+        
+        echo "Confirm site url = ${PROJECTNAME}.${DOMAINEXT}"
+        #do other stuff
+        read -p 'default n [y/n]: ' ACCEPT
+        ACCEPT=${ACCEPT:-"n"}
+
+        TEMPNAME=${PROJECTNAME}
+    done
 
     echo ""
     echo "# Project e-email "
     read -p 'default [w.liszkiewicz@gmail.com]: ' WPEMAIL
     WPEMAIL=${WPEMAIL:-"w.liszkiewicz@gmail.com"} # <<<<< edit default email 
 
-    SERVERWWW="/c/laragon/www" # <<<<< edit to fit your needs
+    LARAGONPATH="/c/laragon.dv" # chnge this line if your instalation is placed in different file
+    SERVERWWW=${LARAGONPATH}/www # <<<<< edit to fit your needs
     PROJECTROOT=$SERVERWWW/$PROJECTNAME
 
     # Setup site folder, replace all $PROJECTNAME with $PROJECTNAME
@@ -111,7 +133,6 @@
 
     WPUSER="Laragon"
     WPPASS="silentisgold"
-    DOMAINEXT="dv" # laradgon default is "test" <<<< edit if needed
     WPURL="https://${PROJECTNAME}.${DOMAINEXT}"
 
     cd ${PROJECTROOT}
@@ -310,7 +331,6 @@
 
 ################### USE LARAGON CLI - LARAGON RELOAD AND OPEN ######################
 # https://laragon.org/docs/cli.html
-    LARAGONPATH="/c/laragon" # chnge this line if your instalation is placed in different file
     ${LARAGONPATH}/laragon reload
     start https://${PROJECTNAME}.dv
     start https://${PROJECTNAME}.dv/wp-admin
