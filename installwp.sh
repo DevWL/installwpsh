@@ -35,15 +35,37 @@
     # manualy
 
 #############################################  INITIAL SETUP #################################################################################
-    read -p 'default [testsite]: ' PROJECTNAME
-    PROJECTNAME=${PROJECTNAME:-"testsite"}
+    DOMAINEXT="dv" # laradgon default is "test" <<<< edit if needed
+
+    ACCEPT="n"
+    TEMPNAME=demo1
+    PROJECTNAME=${TEMPNAME}
+    # TODO - validate proper user inputs
+    while [ "${ACCEPT}" != "y" ] && [ ${#PROJECTNAME} -ge 1 ] && [[ "$PROJECTNAME" =~ [a-zA-Z0-9] ]] && [[ "${PROJECTNAME:0:1}" =~ [a-zA-Z] ]]; do
+        if [[ "$PROJECTNAME" =~ [^a-zA-Z0-9] ]] || [[ "${PROJECTNAME:0:1}" =~ [^a-zA-Z] ]]; then
+            echo "Only letters and numbers allowed. First char has to be a letter"
+        fi
+        
+        read -p "default [${TEMPNAME}]: " PROJECTNAME
+        PROJECTNAME=${PROJECTNAME:-"${TEMPNAME}"}
+        PROJECTNAME=${PROJECTNAME##*/}
+        PROJECTNAME=${PROJECTNAME%.*}
+        
+        echo "Confirm site url = ${PROJECTNAME}.${DOMAINEXT}"
+        #do other stuff
+        read -p 'default n [y/n]: ' ACCEPT
+        ACCEPT=${ACCEPT:-"n"}
+
+        TEMPNAME=${PROJECTNAME}
+    done
 
     echo ""
     echo "# Project e-email "
     read -p 'default [w.liszkiewicz@gmail.com]: ' WPEMAIL
     WPEMAIL=${WPEMAIL:-"w.liszkiewicz@gmail.com"} # <<<<< edit default email 
 
-    SERVERWWW="/c/laragon/www" # <<<<< edit to fit your needs
+    LARAGONPATH="/c/laragon.dv" # chnge this line if your instalation is placed in different file
+    SERVERWWW=${LARAGONPATH}/www # <<<<< edit to fit your needs
     PROJECTROOT=$SERVERWWW/$PROJECTNAME
 
     # Setup site folder, replace all $PROJECTNAME with $PROJECTNAME
@@ -55,7 +77,7 @@
 
 #############################################  DOWNLOAD WP || LOAD LOCAL FILE  #################################################################################
 #https://superuser.com/questions/493640/how-to-retry-connections-with-wget
-    WPSRC='https://wordpress.org/latest.tar.gz' # EN - https://wordpress.org/latest.tar.gz # PL - https://pl.wordpress.org/latest-pl_PL.tar.gz
+    WPSRC='https://pl.wordpress.org/latest-pl_PL.tar.gz' # EN - https://wordpress.org/latest.tar.gz # PL - https://pl.wordpress.org/latest-pl_PL.tar.gz
     WPCMSBASENAME=$(basename -- $WPSRC)
     cd ${SERVERWWW}
 
@@ -100,9 +122,14 @@
 #############################################  DATABASE MYSQL #################################################################################
 # # Setup MySQL Database
 # mysql.server start # use on linux
-    mysql -u root -e "create database ${PROJECTNAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci";
-    mysql -u root -e "create user '${PROJECTNAME}'@'localhost' identified by password ''";
-    mysql -u root -e "GRANT ALL PRIVILEGES ON ${PROJECTNAME}.* TO ${PROJECTNAME}@localhost";
+    # # DATABASENAME=${PROJECTNAME}${DOMAINEXT} #if you need to create a name with extension test or dv, if you have multiple instance of laragon installed it is prabobly best to not use this to be more portable between env
+    DATABASENAME=${PROJECTNAME}
+
+    # SANITIZE DATABSE NAME (REMOVE UNEXPECTED CHAR)
+    
+    mysql -u root -e "create database ${DATABASENAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci";
+    mysql -u root -e "create user '${DATABASENAME}'@'localhost' identified by password ''";
+    mysql -u root -e "GRANT ALL PRIVILEGES ON ${DATABASENAME}.* TO ${DATABASENAME}@localhost";
     mysql -u root -e "FLUSH PRIVILEGES";
 
 
@@ -111,11 +138,10 @@
 
     WPUSER="Laragon"
     WPPASS="silentisgold"
-    DOMAINEXT="dv" # laradgon default is "test" <<<< edit if needed
     WPURL="https://${PROJECTNAME}.${DOMAINEXT}"
 
     cd ${PROJECTROOT}
-    wp-cli.phar core config --dbname=$PROJECTNAME --dbuser=$PROJECTNAME
+    wp-cli.phar core config --dbname=${DATABASENAME} --dbuser=${DATABASENAME}
     wp-cli.phar core install --url=${WPURL} --title=${PROJECTNAME} --admin_user=${WPUSER} --admin_password=${WPPASS} --admin_email=${WPEMAIL}
     # wp https://make.wordpress.org/cli/handbook/guides/installing/
 
@@ -127,26 +153,33 @@
         mkdir ${SERVERWWW}/wp-themes 2> /dev/null #suppress errors and warnings
     fi
 
-    # THEMESRC='http://github.com/toddmotto/html5blank/archive/stable.zip' # <<<<< edit if needed [HTML5BLANK]
-    THEMESRC='https://github.com/Automattic/_s/archive/refs/heads/master.zip' # <<<<< edit if needed [_S]
-    THEMEBASENAME=$(basename -- $THEMESRC)
+    # # THEMESRC='http://github.com/toddmotto/html5blank/archive/stable.zip' # <<<<< edit if needed [HTML5BLANK]
+    # THEMESRC='https://github.com/Automattic/_s/archive/refs/heads/master.zip' # <<<<< edit if needed [_S]
+    # THEMEBASENAME=$(basename -- $THEMESRC)
 
-    cd ${THEMESLIB}
-    if [ "$UPDATEFILE" = "y" ]
-    then
-        echo "Removing old theme ${THEMESLIB}/$THEMEBASENAME"
-        rm ${THEMESLIB}/$THEMEBASENAME
-        while [ 1 ]; do
-            wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 --continue -O $THEMEBASENAME ${THEMESRC} || curl -O ${THEMESRC}
-            if [ $? = 0 ]; then break; fi; # check return value, break if successful (0)
-            sleep 2s;
-        done;
-        ## OR GET THEMES FROM LOCAL DIR LIKE THIS
-    fi
+    # cd ${THEMESLIB}
+    # if [ "$UPDATEFILE" = "y" ]
+    # then
+    #     echo "Removing old theme ${THEMESLIB}/$THEMEBASENAME"
+    #     rm ${THEMESLIB}/$THEMEBASENAME
+    #     while [ 1 ]; do
+    #         wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 --continue -O $THEMEBASENAME ${THEMESRC} || curl -O ${THEMESRC}
+    #         if [ $? = 0 ]; then break; fi; # check return value, break if successful (0)
+    #         sleep 2s;
+    #     done;
+    #     ## OR GET THEMES FROM LOCAL DIR LIKE THIS
+    # fi
 
-    # LOCALTHEMESRC='/c/users/symfony/downloads/Divi.zip' # <<<<< edit if needed
-    # LOCALTHEMEBASENAME=$(basename -- $LOCALTHEMESRC)
-    # cp -r ${LOCALTHEMESRC} ${THEMESLIB} # <<<<< edit if needed    
+    LOCALTHEMESRC='/c/users/symfony/downloads/Divi.zip' # <<<<< edit if needed
+    LOCALTHEMEBASENAME=$(basename -- $LOCALTHEMESRC)
+    echo LOCALTHEMEBASENAME ${LOCALTHEMEBASENAME} # <<<<<<<<<<<<<<<<<< TEST
+
+    # copy theme from local folder to lib directory
+    cp -r ${LOCALTHEMESRC} ${THEMESLIB} # <<<<< edit if needed
+
+    # reasign themebasename if using localtheme instead of undercore or boilerplate    
+    THEMEBASENAME=${LOCALTHEMEBASENAME}
+    echo THEMEBASENAME ${THEMEBASENAME} # <<<<<<<<<<<<<<<<<< TEST
 
     ##################### <<<<<<<<<<<<<<<<<<<<<<<<<< replace
     # ## unzip all files
@@ -164,26 +197,46 @@
 
     cd ${PROJECTROOT}
     # wp-cli.phar theme install ${THEMESLIB}/$THEMEBASENAME --activate
-    wp-cli.phar theme install ${THEMESLIB}/${THEMEBASENAME}
+    wp-cli.phar theme install ${THEMESLIB}/${THEMEBASENAME} 
+    echo Install theme wp-cli THEMESLIB/THEMEBASENAME : ${THEMESLIB}/${THEMEBASENAME}
+
+    removeSpecialChars () 
+    {
+        local a=${1//[^[:alnum:]]/}
+        local temp="${a,,}"
+        echo ${temp}
+        return ${temp}
+    }
+
     
     # find the unzpi folder name
     UZIPFOLDERNAME=$(unzip -qql ${THEMESLIB}/${THEMEBASENAME} | head -n1 | tr -s ' ' | cut -d' ' -f5-)
-    UZIPFOLDERNAMEMOD=${UZIPFOLDERNAME::-1} # remove forwar slash at the end of the dir name
+    echo UZIPFOLDERNAME ${UZIPFOLDERNAME} # <<<<<<<<<125<<<<<<<<< TEST
+    UZIPFOLDERNAMEMOD=$(echo $UZIPFOLDERNAME | cut -d/ -f1) # shoud generate extracted folder name ex: "Divi"
+
+
+    # UZIPFOLDERNAMEMOD=${UZIPFOLDERNAME::-1} # remove forwar slash at the end of the dir name
     # UZIPFOLDERNAMEMOD=${UZIPFOLDERNAMEMOD//-stable/} # remove given fraze from folder name https://unix.stackexchange.com/questions/311758/remove-specific-word-in-variable
+    
+    echo UZIPFOLDERNAMEMOD ${UZIPFOLDERNAMEMOD} # <<<<<<<<<125<<<<<<<<< TEST
 
     # remove extension from filename > https://stackoverflow.com/questions/2664740/extract-file-basename-without-path-and-extension-in-bash > https://linuxgazette.net/18/bash.html
     PARENTTHEME=${UZIPFOLDERNAMEMOD%%.*}
+    echo PARENTTHEME ${PARENTTHEME} # <<<<<<<<<125<<<<<<<<< TEST
     CHILDTHEME=${PARENTTHEME}-child
+    echo CHILDTHEME ${CHILDTHEME} # <<<<<<<<<125<<<<<<<<< TEST
     echo "Creating child-theme ${CHILDTHEME} for ${PARENTTHEME} parrent theme"
 
     wp-cli.phar scaffold child-theme ${CHILDTHEME} --parent_theme=${PARENTTHEME} --activate
+
+    # exit 0 # <<<<<<<<<125<<<<<<<<< TEST
 
     # wp-cli.phar theme activate ${CHILDTHEME}
     ## [i] For manual theme selection you can do: wp-cli.phar theme install ${THEMESLIB}/Divi.zip --activate
 
 # ######################################## create plugin LIB ########################################
     cd $SERVERWWW
-    PLUGINLIB=${SERVERWWW}/wp-plugins 
+    PLUGINLIB=${SERVERWWW}/wp-plugins
     mkdir $PLUGINLIB 2> /dev/null #suppress errors and warnings
     cd $PLUGINLIB
 
@@ -310,7 +363,6 @@
 
 ################### USE LARAGON CLI - LARAGON RELOAD AND OPEN ######################
 # https://laragon.org/docs/cli.html
-    LARAGONPATH="/c/laragon" # chnge this line if your instalation is placed in different file
     ${LARAGONPATH}/laragon reload
     start https://${PROJECTNAME}.dv
     start https://${PROJECTNAME}.dv/wp-admin
@@ -320,8 +372,8 @@
     echo > "_dv_login.txt"
     echo '' | tee -a "_dv_login.txt"
     echo "------------ DB ------------" | tee -a "_dv_login.txt"
-    echo "Database: ${PROJECTNAME}" | tee -a "_dv_login.txt"
-    echo "DB User: ${PROJECTNAME}" | tee -a "_dv_login.txt"
+    echo "Database: ${DATABASENAME}" | tee -a "_dv_login.txt"
+    echo "DB User: ${DATABASENAME}" | tee -a "_dv_login.txt"
     echo "DB Pass: ''" | tee -a "_dv_login.txt"
 
     echo '' | tee -a "_dv_login.txt"
