@@ -124,7 +124,14 @@
 # mysql.server start # use on linux
     # # DATABASENAME=${PROJECTNAME}${DOMAINEXT} #if you need to create a name with extension test or dv, if you have multiple instance of laragon installed it is prabobly best to not use this to be more portable between env
     DATABASENAME=${PROJECTNAME}
-
+    # # first, strip underscores
+    # DATABASENAME=${DATABASENAME//_/}
+    # next, replace spaces with underscores
+    DATABASENAME=${DATABASENAME// /_}
+    # now, clean out anything that's not alphanumeric or an underscore
+    DATABASENAME=${DATABASENAME//[^a-zA-Z0-9_]/}
+    # finally, lowercase with TR
+    DATABASENAME=$(echo -n ${DATABASENAME} | tr A-Z a-z)
     # SANITIZE DATABSE NAME (REMOVE UNEXPECTED CHAR)
     
     mysql -u root -e "create database ${DATABASENAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci";
@@ -353,13 +360,15 @@
 
 # Add Pages - Set your own page name
     cd ${PROJECTROOT}
-    wp-cli.phar post create --post_type=page --post_status=draft --post_title="Home Page" # replace post_title value
+    wp-cli.phar post create --post_type=page --post_status=draft --post_title="Home" # replace post_title value
     wp-cli.phar post create --post_type=page --post_status=draft --post_title=Contact # replace post_title value
     wp-cli.phar post create --post_type=page --post_status=draft --post_title=Blog # replace post_title value
     wp-cli.phar post create --post_type=page --post_status=draft --post_title=Services # replace post_title value
     wp-cli.phar post create --post_type=page --post_status=draft --post_title=Gallery # replace post_title value
     wp-cli.phar post create --post_type=page --post_status=draft --post_title=Portfolio # replace post_title value
     # wp-cli.phar option update page_on_front 4 # replace 4 with page id you want to set as homepage # all options to set available are listed at domainname/wp-admin/options.php <<< This cose some issue with loading styles for homepage with DIVI theme
+
+    wp-cli.phar menu create "Main" #https://developer.wordpress.org/cli/commands/menu/
 
 ################### USE LARAGON CLI - LARAGON RELOAD AND OPEN ######################
 # https://laragon.org/docs/cli.html
